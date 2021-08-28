@@ -2,14 +2,13 @@ function eval() {
     // Do not use eval!!!
     return;
 }
-let expr = '2+2*2*3*4-1'
+
 function expressionCalculator(expr) {
     let config = {
         '+': 1,
         '-': 1,
         '/': 2,
         '*': 2,
-        // '(': 1
     }
     let outStack = []
     let arithmeticStack = []
@@ -37,73 +36,90 @@ function expressionCalculator(expr) {
             }
         }
 
-        console.log(validExpression);
-        if (openBrackets !== closeBrackets) {
-            throw new SyntaxError('Brackets must be paired')
-        }
+        if (openBrackets !== closeBrackets)  throw new SyntaxError('ExpressionError: Brackets must be paired')
+        
     }
 
-    function  RPN(validExpression) {
+    function RPN(validExpression) {
         let expressionArray = validExpression.split(' ')
 
-        let counter = 0;
-
-        while ( counter < expressionArray.length ) {
+        for (let counter = 0; counter < expressionArray.length; counter++) {
             let curEl = expressionArray[counter];
-            
 
-
-            if ( !actions.includes(curEl) && curEl !== ')' && curEl !== '(') {
+            if (!actions.includes(curEl) && curEl !== ')' && curEl !== '(') {
                 outStack.push(curEl)
-                counter++
-            } else if ( curEl === '(') {
+            } else if (curEl === '(') {
                 arithmeticStack.push(curEl)
-                counter++
-            } else if ( (!arithmeticStack.length) || (config[curEl] > config[arithmeticStack[arithmeticStack.length - 1]]) || arithmeticStack[arithmeticStack.length - 1] === '(' ) {
-                arithmeticStack.push(curEl)
-                counter++
-            } else if( config[curEl] <= config[arithmeticStack[arithmeticStack.length - 1]] ) {
+            } else if (curEl === ')') {
                 let i = arithmeticStack.length - 1
-                console.log('arithmetic stack top el, while current <= topStack----',arithmeticStack[i], 'currentEl----',curEl);
-                console.log('arithmetic stack ',arithmeticStack, 'outstack----',outStack);
-                while ( config[arithmeticStack[i]] >= config[curEl] ) {
-                   outStack.push(arithmeticStack.pop())
-                }
-                if( !arithmeticStack.length || config[arithmeticStack[i]] < curEl ) {
-                arithmeticStack.push(curEl)    
-                counter++
-                } else {
-                    i--
-                }
-            } 
-// ----------------------вот то сюда все норм--------------
-
-            else if ( curEl === ')') {
-                let i = arithmeticStack.length - 1
-                while (arithmeticStack[i] !== '(' || !arithmeticStack.length) {
+                while (arithmeticStack[arithmeticStack.length - 1] !== '(' && arithmeticStack.length) {
                     outStack.push(arithmeticStack.pop())
                 }
-                if( arithmeticStack[i] === '(' ) {
+                if (arithmeticStack[arithmeticStack.length - 1] === '(') {
                     arithmeticStack.pop()
                 }
-                counter++
+            } else if ((!arithmeticStack.length) || (config[curEl] > config[arithmeticStack[arithmeticStack.length - 1]]) || arithmeticStack[arithmeticStack.length - 1] === '(') {
+                arithmeticStack.push(curEl)
+            } else if (config[curEl] <= config[arithmeticStack[arithmeticStack.length - 1]]) {
+                while (config[arithmeticStack[arithmeticStack.length - 1]] >= config[curEl] && arithmeticStack[arithmeticStack.length - 1] !== '(' && arithmeticStack.length) {
+                    outStack.push(arithmeticStack.pop())
+
+                }
+                arithmeticStack.push(curEl)
+
             }
         }
-        while( arithmeticStack.length >= 1 ) {
+        while (arithmeticStack.length >= 1) {
             outStack.push(arithmeticStack.pop())
         }
-        console.log(outStack, arithmeticStack);
     }
 
     tokenizeAndValidate(expr)
     RPN(validExpression)
+    return calc(outStack)
 
-
-
-    // write your solution here
 }
 
-expressionCalculator(expr)
+function calc(arr) {
+
+    if (arr.length === 1) { return +arr[0] }
+    for (let i = 0; i < arr.length; i++) {
+        let firstNum
+        let act
+        let secondNum
+        if (!isFinite(arr[i])) {
+            [firstNum, secondNum, act] = [arr[i - 2], arr[i - 1], arr[i]]
+            let insert = a(firstNum, secondNum, act)
+            arr.splice(i - 2, 3, insert);
+            return calc(arr)
+        }
+
+    }
+
+    function a(firstNum, secondNum, act) {
+        if (act === '+') {
+            let res = (+firstNum) + (+secondNum)
+            result = String(res)
+            return result
+        } else if (act === '-') {
+            let res = (+firstNum) - (+secondNum)
+            result = String(res)
+            return result
+        } else if (act === '*') {
+            let res = (+firstNum) * (+secondNum)
+            result = String(res)
+            return result
+        } else if (act === '/') {
+            if (secondNum === '0') throw new SyntaxError('TypeError: Division by zero.') 
+
+            let res = (+firstNum) / (+secondNum)
+            result = String(res)
+            return result
+        }
+
+    }
+
+}
 
 module.exports = {
     expressionCalculator
